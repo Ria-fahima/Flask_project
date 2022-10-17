@@ -3,9 +3,11 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import date
 from flask_marshmallow import Marshmallow
 
+
 app = Flask(__name__)
 app.config ['JSON_SORT_KEYS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://trello_dev:password123@127.0.0.1:5432/trello'
+
 
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
