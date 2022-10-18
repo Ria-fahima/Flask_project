@@ -1,8 +1,9 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from datetime import date
 from flask_marshmallow import Marshmallow
 from flask_bcrypt import Bcrypt
+from sqlalchemy.exc import IntegrityError
 
 
 app = Flask(__name__)
@@ -24,7 +25,8 @@ class User(db.Model):
 
 class UserSchema(ma.Schema):
     class Meta:
-        fields = ('id','name', 'email', 'is_admin')
+        fields = ('id','name', 'email', 'password','is_admin')
+        
 
 
 class Card(db.Model):
@@ -101,6 +103,26 @@ def seed_db():
     db.session.add_all(cards)
     db.session.commit()
     print('Tables seeded')
+
+
+@app.route('/auth/register/',methods=['POST'])
+def auth_register():
+    try:
+
+        #Load the posted user info 
+        user_info = UserSchema().load(request.json)
+        print(user_info)
+        user = User(
+            email = user_info['email'],
+            password = bcrypt.generate_password_hash(user_info['password']).decode('utf-8'),
+            name = user_info['name']
+        )
+        db.session.add(user)
+        db.session.commit()
+        return UserSchema(exclude = ['password']).dump(user), 201
+    except IntegrityError:
+        return {'error': 'Email address already in use'}, 409
+
 
 @app.route('/cards/')
 def all_cards():
